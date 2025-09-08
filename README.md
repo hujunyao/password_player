@@ -4,6 +4,9 @@
 ## 用法 ##
 python pdf_video.py    password   xxx.mp4
 
+生成文件 encrypted_video_player.html
+
+## ##
 Used for encrypting videos, allowing personal videos to be transmitted over public networks. Playback requires a password.
 After entering the password, the video can be played or downloaded.
 This program was written using DeepSeek.Usagepython pdf_video.py password xxx.mp4
