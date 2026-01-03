@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频加密工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .step {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+        
+        .step-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .step-number {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-upload label {
+            display: block;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload label:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .file-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="password"]:focus {
+            border-color: rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        input[type="password"]::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            margin: 10px 5px;
+        }
+        
+        button:hover, button:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:disabled {
+            background: rgba(255, 255, 255, 0.2);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .encrypt-btn {
+            background: linear-gradient(90deg, #38ef7d, #11998e);
+        }
+        
+        .download-btn {
+            background: linear-gradient(90deg, #2193b0, #6dd5ed);
+        }
+        
+        .preview-btn {
+            background: linear-gradient(90deg, #fc4a1a, #f7b733);
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00b09b, #96c93d);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-text {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .preview-container {
+            margin-top: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            height: 500px;
+            display: none;
+        }
+        
+        .preview-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .error {
+            color: #ff6b6b;
+            margin-top: 10px;
+            display: none;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .success {
+            color: #4caf50;
+            margin-top: 10px;
+            display: none;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 视频加密工具</h1>
+        
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">1</span>
+                <span>选择视频文件</span>
+            </div>
+            <div class="file-upload">
+                <input type="file" id="videoFile" accept="video/*">
+                <label for="videoFile">点击选择视频文件或拖放到此处</label>
+            </div>
+            <div class="file-info" id="fileInfo">未选择文件</div>
+        </div>
+        
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">2</span>
+                <span>设置密码</span>
+            </div>
+            <input type="password" id="password" placeholder="请输入加密密码...">
+            <div class="error" id="passwordError">密码不能为空</div>
+        </div>
+        
+        <div class="step">
+            <div class="step-title">
+                <span class="step-number">3</span>
+                <span>加密视频</span>
+            </div>
+            <button id="encryptBtn" class="encrypt-btn" disabled>开始加密</button>
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress" id="progressBar"></div>
+                </div>
+                <div class="progress-text" id="progressText">准备中...</div>
+            </div>
+            <div class="error" id="encryptError"></div>
+            <div class="success" id="encryptSuccess"></div>
+        </div>
+        
+        <div class="result-container" id="resultContainer">
+            <div class="step-title">
+                <span class="step-number">4</span>
+                <span>处理结果</span>
+            </div>
+            <div class="actions">
+                <button id="downloadBtn" class="download-btn">下载加密视频页面</button>
+                <button id="previewBtn" class="preview-btn">预览加密视频页面</button>
+            </div>
+            <div class="preview-container" id="previewContainer">
+                <iframe id="previewFrame"></iframe>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <p>📌 使用说明：</p>
+            <p>1. 选择要加密的视频文件（支持常见视频格式）</p>
+            <p>2. 设置一个密码，用于加密视频和后续验证</p>
+            <p>3. 点击"开始加密"按钮，等待处理完成</p>
+            <p>4. 下载生成的HTML文件或预览效果</p>
+            <p>5. 打开生成的HTML文件，输入密码即可观看视频</p>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let selectedFile = null;
+        let encryptedHtmlContent = null;
+        
+        // DOM元素
+        const videoFileInput = document.getElementById('videoFile');
+        const fileInfo = document.getElementById('fileInfo');
+        const passwordInput = document.getElementById('password');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const passwordError = document.getElementById('passwordError');
+        const encryptError = document.getElementById('encryptError');
+        const encryptSuccess = document.getElementById('encryptSuccess');
+        const resultContainer = document.getElementById('resultContainer');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const previewBtn = document.getElementById('previewBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewFrame = document.getElementById('previewFrame');
+        
+        // 事件监听
+        videoFileInput.addEventListener('change', handleFileSelect);
+        passwordInput.addEventListener('input', handlePasswordInput);
+        encryptBtn.addEventListener('click', encryptVideo);
+        downloadBtn.addEventListener('click', downloadEncryptedHtml);
+        previewBtn.addEventListener('click', previewEncryptedHtml);
+        
+        // 处理文件选择
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                fileInfo.textContent = '已选择: ' + file.name + ' (' + fileSizeMB + ' MB)';
+                checkReadyToEncrypt();
+            } else {
+                selectedFile = null;
+                fileInfo.textContent = '未选择文件';
+                encryptBtn.disabled = true;
+            }
+        }
+        
+        // 处理密码输入
+        function handlePasswordInput() {
+            passwordError.style.display = 'none';
+            checkReadyToEncrypt();
+        }
+        
+        // 检查是否可以开始加密
+        function checkReadyToEncrypt() {
+            if (selectedFile && passwordInput.value.trim()) {
+                encryptBtn.disabled = false;
+            } else {
+                encryptBtn.disabled = true;
+            }
+        }
+        
+        // XOR加密函数
+        function xorEncrypt(data, key) {
+            const keyBytes = new TextEncoder().encode(key);
+            const result = new Uint8Array(data.length);
+            
+            for (let i = 0; i < data.length; i++) {
+                result[i] = data[i] ^ keyBytes[i % keyBytes.length];
+            }
+            
+            return result;
+        }
+        
+        // 生成密码校验和
+        function simpleChecksum(password) {
+            let checksum = 0;
+            for (let i = 0; i < password.length; i++) {
+                checksum = (checksum + password.charCodeAt(i)) % 10000;
+            }
+            return checksum.toString().padStart(4, '0');
+        }
+        
+        // 将ArrayBuffer转换为Base64
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            
+            return btoa(binary);
+        }
+        
+        // 加密视频
+        async function encryptVideo() {
+            const password = passwordInput.value.trim();
+            
+            if (!password) {
+                passwordError.style.display = 'block';
+                return;
+            }
+            
+            // 重置状态
+            encryptError.style.display = 'none';
+            encryptSuccess.style.display = 'none';
+            resultContainer.style.display = 'none';
+            previewContainer.style.display = 'none';
+            
+            // 显示进度条
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = '读取视频文件...';
+            
+            try {
+                // 读取文件
+                const fileReader = new FileReader();
+                
+                fileReader.onload = async function(e) {
+                    const videoData = new Uint8Array(e.target.result);
+                    
+                    // 更新进度
+                    progressBar.style.width = '30%';
+                    progressText.textContent = '加密视频数据...';
+                    
+                    // 使用setTimeout避免UI阻塞
+                    setTimeout(() => {
+                        // 加密视频数据
+                        const encryptedVideo = xorEncrypt(videoData, password);
+                        
+                        // 更新进度
+                        progressBar.style.width = '60%';
+                        progressText.textContent = '转换为Base64...';
+                        
+                        // 转换为Base64
+                        const videoB64 = arrayBufferToBase64(encryptedVideo);
+                        
+                        // 更新进度
+                        progressBar.style.width = '80%';
+                        progressText.textContent = '生成HTML页面...';
+                        
+                        // 生成密码校验和
+                        const passwordChecksum = simpleChecksum(password);
+                        
+                        // 获取文件信息
+                        const videoName = selectedFile.name;
+                        const fileSize = encryptedVideo.length;
+                        
+                        // 生成HTML内容
+                        encryptedHtmlContent = generateHtml(videoB64, passwordChecksum, videoName, fileSize);
+                        
+                        // 更新进度
+                        progressBar.style.width = '100%';
+                        progressText.textContent = '完成！';
+                        
+                        // 显示成功消息
+                        encryptSuccess.textContent = '视频加密成功！';
+                        encryptSuccess.style.display = 'block';
+                        
+                        // 显示结果区域
+                        resultContainer.style.display = 'block';
+                        
+                        // 隐藏进度条
+                        setTimeout(() => {
+                            progressContainer.style.display = 'none';
+                        }, 1000);
+                    }, 100);
+                };
+                
+                fileReader.onerror = function() {
+                    throw new Error('读取文件失败');
+                };
+                
+                fileReader.readAsArrayBuffer(selectedFile);
+                
+            } catch (error) {
+                encryptError.textContent = '加密失败: ' + error.message;
+                encryptError.style.display = 'block';
+                progressContainer.style.display = 'none';
+            }
+        }
+        
+        // 生成HTML内容
+        function generateHtml(videoB64, passwordChecksum, videoName, fileSize) {
+            // 使用字符串拼接而不是模板字符串，避免嵌套问题
+            var html = '<!DOCTYPE html>\n<html lang="zh-CN">\n<head>\n';
+            html += '    <meta charset="UTF-8">\n';
+            html += '    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n';
+            html += '    <title>加密视频播放器</title>\n';
+            html += '    <style>\n';
+            html += '        body {\n';
+            html += '            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;\n';
+            html += '            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);\n';
+            html += '            margin: 0;\n';
+            html += '            padding: 20px;\n';
+            html += '            min-height: 100vh;\n';
+            html += '            display: flex;\n';
+            html += '            flex-direction: column;\n';
+            html += '            align-items: center;\n';
+            html += '            justify-content: center;\n';
+            html += '            color: white;\n';
+            html += '        }\n';
+            html += '        .container {\n';
+            html += '            background: rgba(255, 255, 255, 0.1);\n';
+            html += '            backdrop-filter: blur(10px);\n';
+            html += '            border-radius: 20px;\n';
+            html += '            padding: 40px;\n';
+            html += '            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);\n';
+            html += '            width: 85%;\n';
+            html += '            max-width: 900px;\n';
+            html += '            text-align: center;\n';
+            html += '            display: none;\n';
+            html += '        }\n';
+            html += '        .loading-screen {\n';
+            html += '            position: fixed;\n';
+            html += '            top: 0;\n';
+            html += '            left: 0;\n';
+            html += '            width: 100%;\n';
+            html += '            height: 100%;\n';
+            html += '            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);\n';
+            html += '            display: flex;\n';
+            html += '            flex-direction: column;\n';
+            html += '            align-items: center;\n';
+            html += '            justify-content: center;\n';
+            html += '            z-index: 1000;\n';
+            html += '        }\n';
+            html += '        .loading-logo {\n';
+            html += '            font-size: 32px;\n';
+            html += '            font-weight: bold;\n';
+            html += '            margin-bottom: 30px;\n';
+            html += '            display: flex;\n';
+            html += '            align-items: center;\n';
+            html += '            gap: 15px;\n';
+            html += '        }\n';
+            html += '        .loading-icon {\n';
+            html += '            font-size: 40px;\n';
+            html += '        }\n';
+            html += '        .loading-progress-container {\n';
+            html += '            width: 80%;\n';
+            html += '            max-width: 400px;\n';
+            html += '            background: rgba(255, 255, 255, 0.1);\n';
+            html += '            border-radius: 10px;\n';
+            html += '            margin: 20px 0;\n';
+            html += '            overflow: hidden;\n';
+            html += '        }\n';
+            html += '        .loading-progress-bar {\n';
+            html += '            width: 0%;\n';
+            html += '            height: 20px;\n';
+            html += '            background: linear-gradient(90deg, #00b09b, #96c93d);\n';
+            html += '            border-radius: 10px;\n';
+            html += '            transition: width 0.5s ease;\n';
+            html += '        }\n';
+            html += '        .loading-text {\n';
+            html += '            font-size: 16px;\n';
+            html += '            margin-top: 10px;\n';
+            html += '            color: rgba(255, 255, 255, 0.9);\n';
+            html += '        }\n';
+            html += '        .loading-details {\n';
+            html += '            font-size: 14px;\n';
+            html += '            color: rgba(255, 255, 255, 0.7);\n';
+            html += '            margin-top: 5px;\n';
+            html += '        }\n';
+            html += '        h1 {\n';
+            html += '            margin-top: 0;\n';
+            html += '            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);\n';
+            html += '            font-size: 2.2rem;\n';
+            html += '            margin-bottom: 10px;\n';
+            html += '        }\n';
+            html += '        .subtitle {\n';
+            html += '            font-size: 1.1rem;\n';
+            html += '            margin-bottom: 25px;\n';
+            html += '            opacity: 0.9;\n';
+            html += '        }\n';
+            html += '        .password-form {\n';
+            html += '            margin: 25px 0;\n';
+            html += '            display: flex;\n';
+            html += '            flex-direction: column;\n';
+            html += '            align-items: center;\n';
+            html += '            gap: 15px;\n';
+            html += '        }\n';
+            html += '        input[type="text"] {\n';
+            html += '            padding: 12px 20px;\n';
+            html += '            border: 2px solid rgba(255, 255, 255, 0.3);\n';
+            html += '            border-radius: 50px;\n';
+            html += '            background: rgba(255, 255, 255, 0.15);\n';
+            html += '            color: white;\n';
+            html += '            font-size: 16px;\n';
+            html += '            width: 70%;\n';
+            html += '            max-width: 350px;\n';
+            html += '            outline: none;\n';
+            html += '            transition: all 0.3s ease;\n';
+            html += '        }\n';
+            html += '        input[type="text"]:focus {\n';
+            html += '            border-color: rgba(255, 255, 255, 0.7);\n';
+            html += '            background: rgba(255, 255, 255, 0.25);\n';
+            html += '        }\n';
+            html += '        input[type="text"]::placeholder {\n';
+            html += '            color: rgba(255, 255, 255, 0.7);\n';
+            html += '        }\n';
+            html += '        button {\n';
+            html += '            padding: 12px 30px;\n';
+            html += '            border: none;\n';
+            html += '            border-radius: 50px;\n';
+            html += '            background: linear-gradient(90deg, #ff416c, #ff4b2b);\n';
+            html += '            color: white;\n';
+            html += '            font-size: 16px;\n';
+            html += '            font-weight: bold;\n';
+            html += '            cursor: pointer;\n';
+            html += '            transition: all 0.3s ease;\n';
+            html += '            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);\n';
+            html += '            margin: 5px;\n';
+            html += '        }\n';
+            html += '        button:hover, button:active {\n';
+            html += '            transform: translateY(-2px);\n';
+            html += '            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);\n';
+            html += '        }\n';
+            html += '        .download-btn {\n';
+            html += '            background: linear-gradient(90deg, #2193b0, #6dd5ed);\n';
+            html += '        }\n';
+            html += '        .play-btn {\n';
+            html += '            background: linear-gradient(90deg, #38ef7d, #11998e);\n';
+            html += '        }\n';
+            html += '        .video-container {\n';
+            html += '            display: none;\n';
+            html += '            margin-top: 25px;\n';
+            html += '            width: 100%;\n';
+            html += '            border-radius: 15px;\n';
+            html += '            overflow: hidden;\n';
+            html += '            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);\n';
+            html += '        }\n';
+            html += '        video {\n';
+            html += '            width: 100%;\n';
+            html += '            display: block;\n';
+            html += '        }\n';
+            html += '        .error {\n';
+            html += '            color: #ff6b6b;\n';
+            html += '            margin-top: 12px;\n';
+            html += '            display: none;\n';
+            html += '            font-weight: bold;\n';
+            html += '            background: rgba(0, 0, 0, 0.3);\n';
+            html += '            padding: 8px 16px;\n';
+            html += '            border-radius: 8px;\n';
+            html += '            font-size: 14px;\n';
+            html += '        }\n';
+            html += '        .processing-message {\n';
+            html += '            display: none;\n';
+            html += '            margin-top: 12px;\n';
+            html += '            color: #fff;\n';
+            html += '            font-size: 14px;\n';
+            html += '        }\n';
+            html += '        .action-buttons {\n';
+            html += '            margin-top: 15px;\n';
+            html += '            display: flex;\n';
+            html += '            justify-content: center;\n';
+            html += '            gap: 12px;\n';
+            html += '            flex-wrap: wrap;\n';
+            html += '        }\n';
+            html += '        .instructions {\n';
+            html += '            margin-top: 25px;\n';
+            html += '            font-size: 14px;\n';
+            html += '            color: rgba(255, 255, 255, 0.8);\n';
+            html += '            line-height: 1.5;\n';
+            html += '        }\n';
+            html += '        .logo {\n';
+            html += '            font-size: 24px;\n';
+            html += '            font-weight: bold;\n';
+            html += '            margin-bottom: 25px;\n';
+            html += '            display: flex;\n';
+            html += '            align-items: center;\n';
+            html += '            gap: 12px;\n';
+            html += '        }\n';
+            html += '        .logo-icon {\n';
+            html += '            font-size: 32px;\n';
+            html += '        }\n';
+            html += '        .footer {\n';
+            html += '            margin-top: 35px;\n';
+            html += '            font-size: 13px;\n';
+            html += '            opacity: 0.7;\n';
+            html += '        }\n';
+            html += '        .mobile-warning {\n';
+            html += '            display: none;\n';
+            html += '            background: rgba(255, 193, 7, 0.2);\n';
+            html += '            border-left: 4px solid #ffc107;\n';
+            html += '            padding: 12px;\n';
+            html += '            margin: 15px 0;\n';
+            html += '            border-radius: 5px;\n';
+            html += '            text-align: left;\n';
+            html += '            font-size: 14px;\n';
+            html += '        }\n';
+            html += '        @media (max-width: 768px) {\n';
+            html += '            .container {\n';
+            html += '                padding: 20px;\n';
+            html += '                width: 90%;\n';
+            html += '            }\n';
+            html += '            input[type="text"] {\n';
+            html += '                width: 90%;\n';
+            html += '                padding: 10px 18px;\n';
+            html += '                font-size: 15px;\n';
+            html += '            }\n';
+            html += '            button {\n';
+            html += '                padding: 10px 25px;\n';
+            html += '                font-size: 15px;\n';
+            html += '                width: 100%;\n';
+            html += '            }\n';
+            html += '            .action-buttons {\n';
+            html += '                flex-direction: column;\n';
+            html += '                align-items: center;\n';
+            html += '            }\n';
+            html += '            .mobile-warning {\n';
+            html += '                display: block;\n';
+            html += '            }\n';
+            html += '            .loading-progress-container {\n';
+            html += '                width: 90%;\n';
+            html += '            }\n';
+            html += '        }\n';
+            html += '    </style>\n';
+            html += '</head>\n<body>\n';
+            html += '    <!-- 加载屏幕 -->\n';
+            html += '    <div class="loading-screen" id="loadingScreen">\n';
+            html += '        <div class="loading-logo">\n';
+            html += '            <span class="loading-icon">🔒</span>\n';
+            html += '            <span>安全视频播放系统</span>\n';
+            html += '        </div>\n';
+            html += '        <div class="loading-progress-container">\n';
+            html += '            <div class="loading-progress-bar" id="loadingProgressBar"></div>\n';
+            html += '        </div>\n';
+            html += '        <div class="loading-text" id="loadingText">正在加载视频数据...</div>\n';
+            html += '        <div class="loading-details" id="loadingDetails">0% - 准备中</div>\n';
+            html += '    </div>\n\n';
+            html += '    <!-- 主内容容器 -->\n';
+            html += '    <div class="container" id="mainContainer">\n';
+            html += '        <div class="logo">\n';
+            html += '            <span class="logo-icon">🔒</span>\n';
+            html += '            <span>安全视频播放系统</span>\n';
+            html += '        </div>\n';
+            html += '        \n';
+            html += '        <h1>加密视频内容</h1>\n';
+            html += '        <div class="subtitle">请输入密码解锁视频</div>\n';
+            html += '        \n';
+            html += '        <div class="mobile-warning">\n';
+            html += '            <strong>移动设备提示:</strong> 大文件处理需要时间，请耐心等待。\n';
+            html += '        </div>\n';
+            html += '        \n';
+            html += '        <div class="password-form">\n';
+            html += '            <input type="text" id="passwordInput" placeholder="请输入访问密码...">\n';
+            html += '            <button id="decryptButton">验证密码</button>\n';
+            html += '        </div>\n';
+            html += '        \n';
+            html += '        <div id="errorMessage" class="error">密码错误，请重试！</div>\n';
+            html += '        <div id="processingMessage" class="processing-message">正在处理，请稍候...</div>\n';
+            html += '        \n';
+            html += '        <div id="actionContainer" class="action-buttons" style="display: none;">\n';
+            html += '            <button id="downloadButton" class="download-btn">下载视频</button>\n';
+            html += '            <button id="playButton" class="play-btn">播放视频</button>\n';
+            html += '        </div>\n';
+            html += '        \n';
+            html += '        <div id="videoContainer" class="video-container">\n';
+            html += '            <video id="videoPlayer" controls playsinline></video>\n';
+            html += '        </div>\n';
+            html += '        \n';
+            html += '        <div class="instructions">\n';
+            html += '            <p>🔐 此视频内容已使用加密技术进行保护</p>\n';
+            html += '            <p>📁 文件大小: ' + Math.round(fileSize/(1024*1024)) + 'MB</p>\n';
+            html += '            <p>📱 支持电脑和移动设备播放</p>\n';
+            html += '        </div>\n\n';
+            html += '        <div class="footer">\n';
+            html += '            <p>安全视频播放系统</p>\n';
+            html += '        </div>\n';
+            html += '    </div>\n\n';
+            html += '    <script>\n';
+            html += '        // 加密的视频数据（Base64编码）\n';
+            html += '        const encryptedVideoBase64 = "' + videoB64 + '";\n';
+            html += '        const correctPasswordChecksum = "' + passwordChecksum + '";\n';
+            html += '        const videoName = "' + videoName + '";\n';
+            html += '        const totalFileSize = ' + fileSize + ';\n';
+            html += '        \n';
+            html += '        // 全局变量\n';
+            html += '        let decryptedVideoData = null;\n';
+            html += '        let isProcessing = false;\n';
+            html += '        \n';
+            html += '        // 页面加载完成后初始化\n';
+            html += '        document.addEventListener("DOMContentLoaded", function() {\n';
+            html += '            // 开始加载进度\n';
+            html += '            simulateLoadingProgress();\n';
+            html += '            \n';
+            html += '            // 添加按钮点击事件\n';
+            html += '            document.getElementById("decryptButton").addEventListener("click", validatePassword);\n';
+            html += '            document.getElementById("downloadButton").addEventListener("click", downloadVideo);\n';
+            html += '            document.getElementById("playButton").addEventListener("click", playVideo);\n';
+            html += '            \n';
+            html += '            // 支持按回车键提交密码\n';
+            html += '            document.getElementById("passwordInput").addEventListener("keypress", function(e) {\n';
+            html += '                if (e.key === "Enter") {\n';
+            html += '                    validatePassword();\n';
+            html += '                }\n';
+            html += '            });\n';
+            html += '        });\n';
+            html += '        \n';
+            html += '        // 模拟加载进度\n';
+            html += '        function simulateLoadingProgress() {\n';
+            html += '            const progressBar = document.getElementById("loadingProgressBar");\n';
+            html += '            const loadingText = document.getElementById("loadingText");\n';
+            html += '            const loadingDetails = document.getElementById("loadingDetails");\n';
+            html += '            const loadingScreen = document.getElementById("loadingScreen");\n';
+            html += '            const mainContainer = document.getElementById("mainContainer");\n';
+            html += '            \n';
+            html += '            let progress = 0;\n';
+            html += '            const totalSteps = 100;\n';
+            html += '            const fileSizeMB = Math.round(totalFileSize / (1024 * 1024));\n';
+            html += '            \n';
+            html += '            const interval = setInterval(function() {\n';
+            html += '                progress += 1;\n';
+            html += '                if (progress <= 85) {\n';
+            html += '                    // 前期快速加载\n';
+            html += '                    progressBar.style.width = progress + "%";\n';
+            html += '                    loadingDetails.textContent = progress + "% - 加载基础资源";\n';
+            html += '                } else if (progress <= 95) {\n';
+            html += '                    // 中期中等速度\n';
+            html += '                    progress += 0.5;\n';
+            html += '                    progressBar.style.width = progress + "%";\n';
+            html += '                    loadingDetails.textContent = progress + "% - 处理视频数据";\n';
+            html += '                } else {\n';
+            html += '                    // 后期慢速完成\n';
+            html += '                    progress += 0.2;\n';
+            html += '                    progressBar.style.width = progress + "%";\n';
+            html += '                    loadingDetails.textContent = progress + "% - 最终优化";\n';
+            html += '                }\n';
+            html += '                \n';
+            html += '                if (progress >= 100) {\n';
+            html += '                    clearInterval(interval);\n';
+            html += '                    progressBar.style.width = "100%";\n';
+            html += '                    loadingText.textContent = "加载完成！";\n';
+            html += '                    loadingDetails.textContent = "100% - 准备就绪";\n';
+            html += '                    \n';
+            html += '                    // 延迟显示主界面\n';
+            html += '                    setTimeout(function() {\n';
+            html += '                        loadingScreen.style.display = "none";\n';
+            html += '                        mainContainer.style.display = "block";\n';
+            html += '                        \n';
+            html += '                        // 自动聚焦到密码输入框\n';
+            html += '                        document.getElementById("passwordInput").focus();\n';
+            html += '                    }, 500);\n';
+            html += '                }\n';
+            html += '            }, 50);\n';
+            html += '        }\n';
+            html += '        \n';
+            html += '        // 简单的校验和函数\n';
+            html += '        function simpleChecksum(password) {\n';
+            html += '            let checksum = 0;\n';
+            html += '            for (let i = 0; i < password.length; i++) {\n';
+            html += '                checksum = (checksum + password.charCodeAt(i)) % 10000;\n';
+            html += '            }\n';
+            html += '            return checksum.toString().padStart(4, "0");\n';
+            html += '        }\n';
+            html += '        \n';
+            html += '        function validatePassword() {\n';
+            html += '            const password = document.getElementById("passwordInput").value;\n';
+            html += '            const errorMessage = document.getElementById("errorMessage");\n';
+            html += '            const actionContainer = document.getElementById("actionContainer");\n';
+            html += '            const processingMessage = document.getElementById("processingMessage");\n';
+            html += '            \n';
+            html += '            if (isProcessing) return;\n';
+            html += '            \n';
+            html += '            // 验证密码\n';
+            html += '            if (!password) {\n';
+            html += '                showError("请输入密码！");\n';
+            html += '                return;\n';
+            html += '            }\n';
+            html += '            \n';
+            html += '            // 计算输入密码的校验和\n';
+            html += '            const inputChecksum = simpleChecksum(password);\n';
+            html += '            if (inputChecksum !== correctPasswordChecksum) {\n';
+            html += '                showError("密码错误，请重试！");\n';
+            html += '                return;\n';
+            html += '            }\n';
+            html += '            \n';
+            html += '            // 密码正确，显示操作按钮\n';
+            html += '            errorMessage.style.display = "none";\n';
+            html += '            actionContainer.style.display = "flex";\n';
+            html += '        }\n';
+            html += '        \n';
+            html += '        async function downloadVideo() {\n';
+            html += '            if (isProcessing) return;\n';
+            html += '            isProcessing = true;\n';
+            html += '            \n';
+            html += '            const password = document.getElementById("passwordInput").value;\n';
+            html += '            const processingMessage = document.getElementById("processingMessage");\n';
+            html += '            const actionContainer = document.getElementById("actionContainer");\n';
+            html += '            \n';
+            html += '            // 显示处理消息，隐藏操作按钮\n';
+            html += '            actionContainer.style.display = "none";\n';
+            html += '            processingMessage.style.display = "block";\n';
+            html += '            processingMessage.textContent = "正在解密并准备下载，请稍候...";\n';
+            html += '            \n';
+            html += '            try {\n';
+            html += '                // 解码Base64数据\n';
+            html += '                const encryptedData = base64ToUint8Array(encryptedVideoBase64);\n';
+            html += '                \n';
+            html += '                // 解密数据\n';
+            html += '                decryptedVideoData = xorDecrypt(encryptedData, password);\n';
+            html += '                \n';
+            html += '                // 创建Blob对象\n';
+            html += '                const videoBlob = new Blob([decryptedVideoData], { type: "video/mp4" });\n';
+            html += '                const videoUrl = URL.createObjectURL(videoBlob);\n';
+            html += '                \n';
+            html += '                // 创建下载链接\n';
+            html += '                const a = document.createElement("a");\n';
+            html += '                a.href = videoUrl;\n';
+            html += '                a.download = videoName;\n';
+            html += '                document.body.appendChild(a);\n';
+            html += '                a.click();\n';
+            html += '                \n';
+            html += '                // 清理\n';
+            html += '                setTimeout(function() {\n';
+            html += '                    document.body.removeChild(a);\n';
+            html += '                    URL.revokeObjectURL(videoUrl);\n';
+            html += '                    processingMessage.style.display = "none";\n';
+            html += '                    actionContainer.style.display = "flex";\n';
+            html += '                    isProcessing = false;\n';
+            html += '                }, 100);\n';
+            html += '                \n';
+            html += '            } catch (error) {\n';
+            html += '                processingMessage.style.display = "none";\n';
+            html += '                actionContainer.style.display = "flex";\n';
+            html += '                showError("下载失败：" + error.message);\n';
+            html += '                isProcessing = false;\n';
+            html += '            }\n';
+            html += '        }\n';
+            html += '        \n';
+            html += '        async function playVideo() {\n';
+            html += '            if (isProcessing) return;\n';
+            html += '            isProcessing = true;\n';
+            html += '            \n';
+            html += '            const password = document.getElementById("passwordInput").value;\n';
+            html += '            const videoContainer = document.getElementById("videoContainer");\n';
+            html += '            const processingMessage = document.getElementById("processingMessage");\n';
+            html += '            const actionContainer = document.getElementById("actionContainer");\n';
+            html += '            \n';
+            html += '            // 显示处理消息，隐藏操作按钮\n';
+            html += '            actionContainer.style.display = "none";\n';
+            html += '            processingMessage.style.display = "block";\n';
+            html += '            processingMessage.textContent = "正在解密并准备播放，请稍候...";\n';
+            html += '            \n';
+            html += '            try {\n';
+            html += '                // 如果尚未解密，先解密视频\n';
+            html += '                if (!decryptedVideoData) {\n';
+            html += '                    const encryptedData = base64ToUint8Array(encryptedVideoBase64);\n';
+            html += '                    decryptedVideoData = xorDecrypt(encryptedData, password);\n';
+            html += '                }\n';
+            html += '                \n';
+            html += '                // 创建Blob并设置视频源\n';
+            html += '                const videoBlob = new Blob([decryptedVideoData], { type: "video/mp4" });\n';
+            html += '                const videoUrl = URL.createObjectURL(videoBlob);\n';
+            html += '                \n';
+            html += '                const videoPlayer = document.getElementById("videoPlayer");\n';
+            html += '                videoPlayer.src = videoUrl;\n';
+            html += '                videoContainer.style.display = "block";\n';
+            html += '                processingMessage.style.display = "none";\n';
+            html += '                actionContainer.style.display = "flex";\n';
+            html += '                \n';
+            html += '                // 滚动到视频位置\n';
+            html += '                videoContainer.scrollIntoView({ behavior: "smooth" });\n';
+            html += '                \n';
+            html += '                isProcessing = false;\n';
+            html += '                \n';
+            html += '            } catch (error) {\n';
+            html += '                processingMessage.style.display = "none";\n';
+            html += '                actionContainer.style.display = "flex";\n';
+            html += '                showError("播放失败：" + error.message);\n';
+            html += '                isProcessing = false;\n';
+            html += '            }\n';
+            html += '        }\n';
+            html += '        \n';
+            html += '        function showError(message) {\n';
+            html += '            const errorMessage = document.getElementById("errorMessage");\n';
+            html += '            errorMessage.textContent = message;\n';
+            html += '            errorMessage.style.display = "block";\n';
+            html += '        }\n';
+            html += '        \n';
+            html += '        // Base64转Uint8Array\n';
+            html += '        function base64ToUint8Array(base64) {\n';
+            html += '            const binaryString = atob(base64);\n';
+            html += '            const len = binaryString.length;\n';
+            html += '            const bytes = new Uint8Array(len);\n';
+            html += '            for (let i = 0; i < len; i++) {\n';
+            html += '                bytes[i] = binaryString.charCodeAt(i);\n';
+            html += '            }\n';
+            html += '            return bytes;\n';
+            html += '        }\n';
+            html += '        \n';
+            html += '        // XOR解密函数\n';
+            html += '        function xorDecrypt(data, key) {\n';
+            html += '            const keyBytes = new TextEncoder().encode(key);\n';
+            html += '            const result = new Uint8Array(data.length);\n';
+            html += '            \n';
+            html += '            for (let i = 0; i < data.length; i++) {\n';
+            html += '                result[i] = data[i] ^ keyBytes[i % keyBytes.length];\n';
+            html += '            }\n';
+            html += '            \n';
+            html += '            return result;\n';
+            html += '        }\n';
+            html += '    <\/script>\n';
+            html += '</body>\n';
+            html += '</html>';
+            
+            return html;
+        }
+        
+        // 下载加密的HTML文件
+        function downloadEncryptedHtml() {
+            if (!encryptedHtmlContent) return;
+            
+            const blob = new Blob([encryptedHtmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'encrypted_video_player.html';
+            document.body.appendChild(a);
+            a.click();
+            
+            // 清理
+            setTimeout(function() {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 100);
+        }
+        
+        // 预览加密的HTML文件
+        function previewEncryptedHtml() {
+            if (!encryptedHtmlContent) return;
+            
+            // 使用Blob URL创建预览
+            const blob = new Blob([encryptedHtmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            previewFrame.src = url;
+            previewContainer.style.display = 'block';
+            
+            // 滚动到预览区域
+            previewContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // 拖放功能
+        const fileUploadLabel = document.querySelector('.file-upload label');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(function(eventName) {
+            fileUploadLabel.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(function(eventName) {
+            fileUploadLabel.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(function(eventName) {
+            fileUploadLabel.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight(e) {
+            fileUploadLabel.style.background = 'rgba(255, 255, 255, 0.25)';
+            fileUploadLabel.style.borderColor = 'rgba(255, 255, 255, 0.5)';
+        }
+        
+        function unhighlight(e) {
+            fileUploadLabel.style.background = 'rgba(255, 255, 255, 0.15)';
+            fileUploadLabel.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+        }
+        
+        fileUploadLabel.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                videoFileInput.files = files;
+                handleFileSelect({ target: { files: files } });
+            }
+        }
+    </script>
+</body>
+</html>
